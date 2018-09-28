@@ -20,17 +20,23 @@ import etherip.types.CIPData;
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Tag
-{
-    public enum State
-    {
-        /** Tag is meant to be read, updating value with latest from device */
+public class Tag {
+    public enum State {
+        /**
+         * Tag is meant to be read, updating value with latest from device
+         */
         READING,
-        /** Tag has value meant to be written to the device */
+        /**
+         * Tag has value meant to be written to the device
+         */
         TO_BE_WRITTEN,
-        /** Value of tag is being written to device right now */
+        /**
+         * Value of tag is being written to device right now
+         */
         WRITING
-    };
+    }
+
+    ;
 
     // SYNC Notes:
     //
@@ -84,69 +90,79 @@ public class Tag
     // TagList starts writing the value B
     // TagList finishes writing the value B
 
-    /** Tag name */
+    /**
+     * Tag name
+     */
     final private String name;
 
-    /** Current value, or the value to be written */
+    /**
+     * Current value, or the value to be written
+     */
     private CIPData data = null;
 
-    /** State */
+    /**
+     * State
+     */
     private State state = State.READING;
 
-    /** Listeners */
+    /**
+     * Listeners
+     */
     final private List<TagListener> listeners = new CopyOnWriteArrayList<>();
+
+    private String source;
 
     /**
      * Initialize
      *
-     * @param name
-     *            Tag name
+     * @param name Tag name
      */
-    public Tag(final String name)
-    {
+    public Tag(final String name) {
         this.name = name;
     }
 
-    /** @return Tag name */
-    public String getName()
-    {
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    /**
+     * @return Tag name
+     */
+    public String getName() {
         return this.name;
     }
 
     /**
-     * @param listener
-     *            Listener to add
+     * @param listener Listener to add
      */
-    public void addListener(final TagListener listener)
-    {
+    public void addListener(final TagListener listener) {
         this.listeners.add(listener);
         // Perform initial update if there's already known value
-        synchronized (this)
-        {
-            if (this.data != null)
-            {
+        synchronized (this) {
+            if (this.data != null) {
                 listener.tagUpdate(this);
             }
         }
     }
 
     /**
-     * @param listener
-     *            Listener to remove
-     * @throws IllegalStateException
-     *             if listener is not known
+     * @param listener Listener to remove
+     * @throws IllegalStateException if listener is not known
      */
-    public void removeListener(final TagListener listener)
-    {
-        if (!this.listeners.remove(listener))
-        {
+    public void removeListener(final TagListener listener) {
+        if (!this.listeners.remove(listener)) {
             throw new IllegalStateException("Unknown listener");
         }
     }
 
-    /** @return Tag state */
-    public synchronized State getState()
-    {
+    /**
+     * @return Tag state
+     */
+    public synchronized State getState() {
         return this.state;
     }
 
@@ -155,11 +171,9 @@ public class Tag
      * <p>
      * To be called by {@link TagList}
      *
-     * @param state
-     *            {@link State}
+     * @param state {@link State}
      */
-    synchronized void setState(final State state)
-    {
+    synchronized void setState(final State state) {
         this.state = state;
     }
 
@@ -170,8 +184,7 @@ public class Tag
      *
      * @return {@link CIPData}
      */
-    synchronized public CIPData getData()
-    {
+    synchronized public CIPData getData() {
         return this.data;
     }
 
@@ -180,18 +193,14 @@ public class Tag
      * <p>
      * To be called by {@link TagList}
      *
-     * @param data
-     *            {@link CIPData}
+     * @param data {@link CIPData}
      */
-    synchronized void setData(final CIPData data)
-    {
+    synchronized void setData(final CIPData data) {
         this.data = data;
-        for (final TagListener listener : this.listeners)
-        {
-            if (data == null){
+        for (final TagListener listener : this.listeners) {
+            if (data == null) {
                 listener.tagError(this);
-            }
-            else{
+            } else {
                 listener.tagUpdate(this);
             }
         }
@@ -200,24 +209,16 @@ public class Tag
     /**
      * Set CIP data to be written to the device
      *
-     * @param index
-     *            Element index 0, 1, ...
-     * @param value
-     *            Numeric value to write to that element
-     * @throws IndexOutOfBoundsException
-     *             if index is invalid
-     * @throws IllegalStateException
-     *             if tag has never been read, so data type is unknown
-     * @throws Exception
-     *             on invalid data type
-     * @throws IndexOutOfBoundsException
-     *             if index is invalid
+     * @param index Element index 0, 1, ...
+     * @param value Numeric value to write to that element
+     * @throws IndexOutOfBoundsException if index is invalid
+     * @throws IllegalStateException     if tag has never been read, so data type is unknown
+     * @throws Exception                 on invalid data type
+     * @throws IndexOutOfBoundsException if index is invalid
      */
     synchronized public void setWriteValue(final int index, final Number value)
-            throws IllegalStateException, Exception, IndexOutOfBoundsException
-    {
-        if (this.data == null)
-        {
+            throws IllegalStateException, Exception, IndexOutOfBoundsException {
+        if (this.data == null) {
             throw new IllegalStateException("Cannot write tag " + this.name
                     + " because data type is unknown");
         }
@@ -226,16 +227,12 @@ public class Tag
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         final StringBuilder buf = new StringBuilder();
         buf.append("Tag '").append(this.name).append("'");
-        if (this.data == null)
-        {
+        if (this.data == null) {
             buf.append(" (no value)");
-        }
-        else
-        {
+        } else {
             buf.append(" = ").append(this.data);
         }
         return buf.toString();

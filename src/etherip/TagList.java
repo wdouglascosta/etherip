@@ -74,8 +74,7 @@ public class TagList {
      * @param connection {@link Connection} to use for the communication
      * @throws Exception on error
      */
-    public synchronized void process(final Connection connection)
-            throws Exception {
+    public synchronized void process(final Connection connection) throws Exception {
 
         // Determine which tags are to read and which to write
         final MessageRouterProtocol[] readwrite = new MessageRouterProtocol[this.tags
@@ -102,12 +101,10 @@ public class TagList {
                         connection.getSlot(), new MessageRouterProtocol(
                         CNService.CIP_MultiRequest, MessageRouter(),
                         new CIPMultiRequestProtocol(readwrite)))));
-        try {
+
             connection.execute(encap);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
 
         // Handle responses: Fetch data, reset 'write' flags
         for (int i = 0; i < this.tags.size(); ++i) {
