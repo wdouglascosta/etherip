@@ -110,7 +110,7 @@ public class Tag {
      */
     final private List<TagListener> listeners = new CopyOnWriteArrayList<>();
 
-    private String source;
+    private int source;
 
     /**
      * Initialize
@@ -121,13 +121,14 @@ public class Tag {
         this.name = name;
     }
 
-    public void setSource(String source) {
+    public void setSource(int source) {
         this.source = source;
     }
 
-    public String getSource() {
+    public int getSource() {
         return source;
     }
+
 
     /**
      * @return Tag name
