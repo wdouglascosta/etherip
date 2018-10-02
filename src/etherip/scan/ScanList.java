@@ -12,6 +12,8 @@ import static etherip.EtherNetIP.logger;
 import java.util.TimerTask;
 import java.util.logging.Level;
 
+import etherip.Status.ConnectionFailListener;
+import etherip.Status.StsConnection;
 import etherip.Tag;
 import etherip.TagList;
 import etherip.protocol.Connection;
@@ -21,48 +23,46 @@ import etherip.protocol.Connection;
  *
  * @author Kay Kasemir
  */
-public class ScanList extends TimerTask
-{
+public class ScanList extends TimerTask {
     final private double period;
     final private Connection connection;
+    int numAttempt;
+    private StsConnection stsConnection;
 
     final private TagList tags = new TagList();
 
     private volatile boolean aborted = false;
 
-    public ScanList(final double period, final Connection connection)
-    {
+    public ScanList(final double period, final Connection connection, int numAttempt, ConnectionFailListener failListener) {
         this.period = period;
+        this.stsConnection = new StsConnection(numAttempt);
+        this.stsConnection.setListeners(failListener);
         this.connection = connection;
+        this.numAttempt = numAttempt;
     }
 
-    public Tag add(final String tag_name)
-    {
+    public Tag add(final String tag_name) {
         return this.tags.add(tag_name);
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         logger.log(Level.FINE, "Scan list {0} sec", this.period);
-        try
-        {
+        try {
             this.tags.process(this.connection);
-        }
-        catch (final Exception ex)
-        {
-            if (this.aborted)
-            {
+            stsConnection.resetAttempt();
+        } catch (final Exception ex) {
+            if (this.aborted) {
                 return;
             }
             logger.log(Level.WARNING,
                     "Scan list " + this.period + " sec process failed", ex);
+            stsConnection.setAttempt();
         }
     }
 
     @Override
-    public boolean cancel()
-    {
+    public boolean cancel() {
         this.aborted = true;
         return super.cancel();
     }

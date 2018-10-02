@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import etherip.Status.ConnectionFailListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import etherip.protocol.TcpConnection;
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanListTest implements TagListener {
+public class ScanListTest implements TagListener, ConnectionFailListener {
     final private CountDownLatch updates = new CountDownLatch(10);
     final private CountDownLatch errors = new CountDownLatch(5);
     private TcpConnection connection;
@@ -68,7 +69,7 @@ public class ScanListTest implements TagListener {
     public void testScanListRead() throws Exception {
         Logger.getLogger("").setLevel(Level.CONFIG);
 
-        final Scanner scanner = new Scanner(this.connection);
+        final Scanner scanner = new Scanner(this.connection, 5, this);
         final Tag tag1 = scanner.add(1.0, TestSettings.get("float_tag"));
         final Tag tag2 = scanner.add(2.0, TestSettings.get("bool_tag"));
 //        final Tag tag3 = scanner.add(1.1, TestSettings.get("invalid_tag"));
@@ -90,7 +91,7 @@ public class ScanListTest implements TagListener {
     public void testScanListWrite() throws Exception {
         Logger.getLogger("").setLevel(Level.CONFIG);
 
-        final Scanner scanner = new Scanner(this.connection);
+        final Scanner scanner = new Scanner(this.connection, 5, this);
         final Tag tag1 = scanner.add(1.0, TestSettings.get("write_tag"));
         final Tag tag2 = scanner.add(2.0, TestSettings.get("bool_tag"));
 
@@ -125,7 +126,7 @@ public class ScanListTest implements TagListener {
 
     @Test
     public void testScanListError() throws Exception {
-        final Scanner scanner = new Scanner(this.connection);
+        final Scanner scanner = new Scanner(this.connection, 5,this);
         final Tag tag = scanner.add(1.0, TestSettings.get("invalid_tag"));
 
         tag.addListener(this);
@@ -136,5 +137,10 @@ public class ScanListTest implements TagListener {
         scanner.stop();
 
         tag.removeListener(this);
+    }
+
+    @Override
+    public void actionFailure() {
+        System.out.println("chegou aqui e é nois");
     }
 }

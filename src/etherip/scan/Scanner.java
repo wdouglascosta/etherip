@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 
+import etherip.Status.ConnectionFailListener;
 import etherip.Tag;
 import etherip.protocol.Connection;
 
@@ -23,12 +24,16 @@ public class Scanner
 {
     final private Connection connection;
     final Timer timer = new Timer("Scan Timer");
+    private int numAttempt;
+    private ConnectionFailListener failListener;
 
     /** Scan lists by scan period in ms */
     final Map<Long, ScanList> scan_lists = new HashMap<>();
 
-    public Scanner(final Connection connection)
+    public Scanner(final Connection connection, int numAttempt, ConnectionFailListener failListener)
     {
+        this.failListener = failListener;
+        this.numAttempt = numAttempt;
         this.connection = connection;
     }
 
@@ -48,7 +53,7 @@ public class Scanner
         ScanList list = this.scan_lists.get(ms);
         if (list == null)
         {
-            list = new ScanList(period_secs, this.connection);
+            list = new ScanList(period_secs, this.connection, numAttempt, failListener);
             this.scan_lists.put(ms, list);
             this.timer.schedule(list, ms, ms);
         }
